@@ -1,2 +1,2 @@
 # hardware-bot
-A Discord bot that provides system information like CPU, memory, disk usage, and more.
+A auto update Discord bot that provides system information like CPU, memory, disk usage, and more.
