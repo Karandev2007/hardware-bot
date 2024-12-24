@@ -6,6 +6,9 @@ const config = require('./config.json');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
+// store first send message
+let systemInfoMessage = null;
+
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
   sendSystemInfo();
@@ -37,7 +40,7 @@ async function sendSystemInfo() {
   // fetch physical CPU core usages
   const cpuCoreUsage = await getPhysicalCpuCoreUsage();
 
-  // create embed
+  // create embed message
   const embed = new EmbedBuilder()
     .setTitle('System Information 🖥️')
     .setColor(0x1E90FF)
@@ -52,11 +55,21 @@ async function sendSystemInfo() {
     )
     .setFooter({ text: `Last updated: ${lastUpdated}` });
 
-  try {
-    await channel.send({ embeds: [embed] });
-    console.log('System information sent successfully.');
-  } catch (error) {
-    console.error('Failed to send system information:', error);
+  // check if message exists to edit it otherwise, send a new one
+  if (systemInfoMessage) {
+    try {
+      await systemInfoMessage.edit({ embeds: [embed] });
+      console.log('System information updated successfully.');
+    } catch (error) {
+      console.error('Failed to edit system information:', error);
+    }
+  } else {
+    try {
+      systemInfoMessage = await channel.send({ embeds: [embed] });
+      console.log('System information sent successfully.');
+    } catch (error) {
+      console.error('Failed to send system information:', error);
+    }
   }
 }
 
@@ -73,8 +86,8 @@ async function getDiskUsage() {
       const totalSpace = parseInt(diskStats[1]);
       const freeSpace = parseInt(diskStats[0]);
       const usedSpace = totalSpace - freeSpace;
-      const usedGB = usedSpace / (1024 ** 3); // GB
-      const totalGB = totalSpace / (1024 ** 3); // GB
+      const usedGB = usedSpace / (1024 ** 3);
+      const totalGB = totalSpace / (1024 ** 3);
       const percent = ((usedSpace / totalSpace) * 100).toFixed(2);
 
       resolve({
